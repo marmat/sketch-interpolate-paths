@@ -1,0 +1,106 @@
+
+/**
+ * Interpolate Path
+ * Given two selected paths and a number of steps to perform, this plugin will
+ * generate intermediate paths s.t. the first path transforms into the second
+ * one step by step.
+ *
+ * This is my first Sketch Plugin and the Sketch API is a huge undocumented
+ * mess. It might take a while until this plugin works properly... right now
+ * it kind of works sometimes, but it's still full of bugs.
+ *
+ * @author Martin Matysiak (kaktus621@gmail.com)
+ */
+
+
+/**
+ * Interpolates a single point of a path. Makes sure that curvePoints are
+ * correctly combined if either {a} or {b} is an uncurved point.
+ */
+function interpolatePoint(a, b, lambda) {
+  // log("interpolating with l=" + lambda);
+  // log("a=" + a);
+  // log("b=" + b);
+  // log("new x=" + (lambda * a.x + (1 - lambda) * b.x));
+  // log("new y=" + (lambda * a.y + (1 - lambda) * b.y));
+
+  var point = {
+    x: lambda * a.x + (1 - lambda) * b.x,
+    y: lambda * a.y + (1 - lambda) * b.y
+  };
+
+  // log("return=" + point);
+  return point;
+}
+
+
+/**
+ * Performs the interpolation of {a} and {b} using interpolation weight
+ * {lambda} and stores the interpolated points in {path}.
+ */
+function interpolatePaths(path, a, b, lambda) {
+  for (var i = 0; i < path.path().points().length(); i++) {
+    log("interpolatating");
+    var point = path.path().points()[i];
+    var aP = a.path().points()[i];
+    var bP = b.path().points()[i];
+
+    log("Start interpolation");
+
+    var curveFrom = interpolatePoint(
+        aP.curveFrom() || aP.point(),
+        bP.curveFrom() || bP.point(),
+        lambda);
+
+    var p = interpolatePoint(aP.point(), bP.point(), lambda);
+
+    var curveTo = interpolatePoint(
+        aP.curveTo() || aP.point(),
+        bP.curveTo() || bP.point(),
+        lambda);
+
+    log("p=" + p);
+    log("curveFrom=" + curveFrom);
+    log("curveTo=" + curveTo);
+
+    //point.initWithPoint(p, curveFrom, curveTo);
+    point.movePointTo(p);
+
+    log("----" + path.path().points()[i].point());
+
+  }
+}
+
+
+log("%%%%%%%%%%%%%% START %%%%%%%%%%%%%%");
+if (selection.length() != 2) {
+  log("Invalid number of objects selected");
+}
+
+var start = selection[0];//.layers()[0];
+var target = selection[1];//.layers()[0];
+
+if (start.layers()[0].path().points().length() != target.layers()[0].path().points().length()) {
+  log("Paths must have same number of points");
+}
+
+log(start.frame());
+log(target.frame());
+
+
+var steps = 5; // TODO: prompt user for that
+var stepSize = 1.0 / (steps + 1);
+
+for (var i = 1; i <= steps; i++) {
+  // duplicate start path
+  var clone = start.duplicate();
+  var lambda = i * stepSize;
+
+  clone.frame().setX(lambda * start.frame().x() + (1-lambda) * target.frame().x());
+  clone.frame().setY(lambda * start.frame().y() + (1-lambda) * target.frame().y());
+  log(clone.frame());
+
+  // modify points according to interpolation weight
+  interpolatePaths(clone.layers()[0], start.layers()[0], target.layers()[0], lambda);
+}
+
