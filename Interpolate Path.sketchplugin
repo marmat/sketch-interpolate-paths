@@ -17,56 +17,39 @@
  * Interpolates a single point of a path. Makes sure that curvePoints are
  * correctly combined if either {a} or {b} is an uncurved point.
  */
-function interpolatePoint(a, b, lambda) {
-  // log("interpolating with l=" + lambda);
-  // log("a=" + a);
-  // log("b=" + b);
-  // log("new x=" + (lambda * a.x + (1 - lambda) * b.x));
-  // log("new y=" + (lambda * a.y + (1 - lambda) * b.y));
-
-  var point = {
-    x: lambda * a.x + (1 - lambda) * b.x,
-    y: lambda * a.y + (1 - lambda) * b.y
+function interpolatePoint(a, b, interpolator) {
+  return {
+    x: interpolator(a.x, b.x),
+    y: interpolator(a.y, b.y)
   };
-
-  // log("return=" + point);
-  return point;
 }
 
 
 /**
- * Performs the interpolation of {a} and {b} using interpolation weight
- * {lambda} and stores the interpolated points in {path}.
+ * Performs the interpolation of {a} and {b} using interpolation function
+ * {interpolator} and stores the interpolated points in {path}.
  */
-function interpolatePaths(path, a, b, lambda) {
+function interpolatePaths(path, a, b, interpolator) {
   for (var i = 0; i < path.path().points().length(); i++) {
-    log("interpolatating");
     var point = path.path().points()[i];
     var aP = a.path().points()[i];
     var bP = b.path().points()[i];
 
-    log("Start interpolation");
-
     var curveFrom = interpolatePoint(
         aP.curveFrom() || aP.point(),
         bP.curveFrom() || bP.point(),
-        lambda);
+        interpolator);
 
-    var p = interpolatePoint(aP.point(), bP.point(), lambda);
+    var p = interpolatePoint(aP.point(), bP.point(), interpolator);
 
     var curveTo = interpolatePoint(
         aP.curveTo() || aP.point(),
         bP.curveTo() || bP.point(),
-        lambda);
+        interpolator);
 
-    log("p=" + p);
-    log("curveFrom=" + curveFrom);
-    log("curveTo=" + curveTo);
-
-    //point.initWithPoint(p, curveFrom, curveTo);
     point.movePointTo(p);
-
-    log("----" + path.path().points()[i].point());
+    point.setCurveFrom(curveFrom);
+    point.setCurveTo(curveTo);
 
   }
 }
@@ -80,27 +63,42 @@ if (selection.length() != 2) {
 var start = selection[0];//.layers()[0];
 var target = selection[1];//.layers()[0];
 
-if (start.layers()[0].path().points().length() != target.layers()[0].path().points().length()) {
+if (start.layers()[0].path().points().length() !=
+    target.layers()[0].path().points().length()) {
   log("Paths must have same number of points");
 }
 
 log(start.frame());
 log(target.frame());
 
-
-var steps = 5; // TODO: prompt user for that
+var steps = 10; // TODO: prompt user for that
 var stepSize = 1.0 / (steps + 1);
 
 for (var i = 1; i <= steps; i++) {
   // duplicate start path
   var clone = start.duplicate();
   var lambda = i * stepSize;
+  var interpolator = function(a, b) {
+    return lambda * a + (1 - lambda) * b;
+  }
 
-  clone.frame().setX(lambda * start.frame().x() + (1-lambda) * target.frame().x());
-  clone.frame().setY(lambda * start.frame().y() + (1-lambda) * target.frame().y());
-  log(clone.frame());
+  var cloneFrame = clone.frame();
+  var startFrame = start.frame();
+  var targetFrame = target.frame();
 
-  // modify points according to interpolation weight
-  interpolatePaths(clone.layers()[0], start.layers()[0], target.layers()[0], lambda);
+  // Inside the frame the path is using relative coordinates.
+  // To make sure the path is still position correctly with respect to the
+  // document, we will have to reposition and resize the bounding box of the
+  // path accordingly.
+  cloneFrame.setX(interpolator(startFrame.x(), targetFrame.x()));
+  cloneFrame.setY(interpolator(startFrame.y(), targetFrame.y()));
+  cloneFrame.setWidth(interpolator(startFrame.width(), targetFrame.width()));
+  cloneFrame.setHeight(interpolator(startFrame.height(), targetFrame.height()));
+
+  // Modify single points of the path according to the interpolator
+  interpolatePaths(clone.layers()[0],
+      start.layers()[0],
+      target.layers()[0],
+      interpolator);
 }
 
