@@ -13,5 +13,33 @@ version of the script:
 
 The interpolation seen in the animation is by no means perfect yet.
 
-Usage: put the .sketchplugin file into the Plugins folder of your Sketch app.
-Execute from Sketch's Plugin menu after selecting two paths.
+
+## Usage
+
+- Put the .sketchplugin file into the Plugins folder of your Sketch app.
+- Execute from Sketch's Plugin menu after selecting two paths.
+
+
+## Features
+
+The following attributes are regarded when doing the interpolation:
+
+- Position of points
+- Position of curve anchors
+- Path opacity
+
+Todo:
+
+- All other path-level properties (Size, Color, ...)
+
+Can't really be done:
+
+- Blending modes: interpolation does not make sense here
+
+Currently, **both paths must have the same number of points**. This restriction
+might be lifted in the future. There's no guarantee of proper working if
+corresponding points have differing curve modes in the two paths. Generally, it
+should work fine, though.
+
+Generally the plugin copies the properties of the hierarchy wise bottom-most
+path selected (i.e. the one furthest in the back).
