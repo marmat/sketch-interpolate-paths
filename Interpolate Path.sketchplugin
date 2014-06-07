@@ -54,6 +54,31 @@ function interpolatePaths(path, a, b, interpolator) {
   }
 }
 
+
+/**
+ * All parameters except interpolator are of the type MSGraphicsContextSettings.
+ */
+function interpolateContextSettings(clone, start, target, interpolator) {
+  clone.setOpacity(interpolator(start.opacity(), target.opacity()));
+}
+
+
+/**
+ * Interpolates the border styles of the paths.
+ * All parameters except interpolator are of the type MSBorderStyleCollection.
+ */
+function interpolateBorders(clone, start, target, interpolator) {
+  for (var i = 0; i < clone.count(); i++) {
+    var c = clone.objectAtIndex(i);
+    var s = start.objectAtIndex(i);
+    var t = target.objectAtIndex(i);
+
+    c.setThickness(interpolator(s.thickness(), t.thickness()));
+    interpolateContextSettings(c.contextSettings(), s.contextSettings(),
+        t.contextSettings(), interpolator)
+  }
+}
+
 // Dump Object, taken from github.com/sketchplugins/plugin-requests
 function dump(obj){
   log("######################################")
@@ -61,25 +86,25 @@ function dump(obj){
   log("## obj class is: " + [obj className])
   log("######################################")
 
-  // log("obj.properties:")
-  // log([obj class].mocha().properties())
-  // log("obj.propertiesWithAncestors:")
-  // log([obj class].mocha().propertiesWithAncestors())
+  log("obj.properties:")
+  log([obj class].mocha().properties())
+  log("obj.propertiesWithAncestors:")
+  log([obj class].mocha().propertiesWithAncestors())
 
-  // log("obj.classMethods:")
-  // log([obj class].mocha().classMethods())
-  // log("obj.classMethodsWithAncestors:")
-  // log([obj class].mocha().classMethodsWithAncestors())
+  log("obj.classMethods:")
+  log([obj class].mocha().classMethods())
+  log("obj.classMethodsWithAncestors:")
+  log([obj class].mocha().classMethodsWithAncestors())
 
-  // log("obj.instanceMethods:")
-  // log([obj class].mocha().instanceMethods())
-  // log("obj.instanceMethodsWithAncestors:")
-  // log([obj class].mocha().instanceMethodsWithAncestors())
+  log("obj.instanceMethods:")
+  log([obj class].mocha().instanceMethods())
+  log("obj.instanceMethodsWithAncestors:")
+  log([obj class].mocha().instanceMethodsWithAncestors())
 
-  // log("obj.protocols:")
-  // log([obj class].mocha().protocols())
-  // log("obj.protocolsWithAncestors:")
-  // log([obj class].mocha().protocolsWithAncestors())
+  log("obj.protocols:")
+  log([obj class].mocha().protocols())
+  log("obj.protocolsWithAncestors:")
+  log([obj class].mocha().protocolsWithAncestors())
 
   log("obj.treeAsDictionary():")
   log(obj.treeAsDictionary())
@@ -87,22 +112,24 @@ function dump(obj){
 
 
 log("%%%%%%%%%%%%%% START %%%%%%%%%%%%%%");
+// Note: we'll use exit() to abort the script even though this method does not
+// exist. This triggers an error message in the log, but that's okay.
+
 if (selection.count() != 2) {
-  log("Invalid number of objects selected");
+  doc.showMessage("Invalid number of objects selected");
+  exit();
 }
 
-var start = selection[0];//.layers()[0];
-var target = selection[1];//.layers()[0];
+var start = selection[0];
+var target = selection[1];
 
 if (start.layers().objectAtIndex(0).path().points().count() !=
     target.layers().objectAtIndex(0).path().points().count()) {
-  log("Paths must have same number of points");
+  doc.showMessage("Paths must have same number of points");
 }
 
-dump(start);
-
-//var steps = [doc askForUserInput:"Number of steps" initialValue:"10"];
-var steps = 10; // DEBUG //
+var steps = parseInt([doc askForUserInput:"Number of steps" initialValue:10], 10);
+//var steps = 10; // DEBUG //
 var stepSize = 1.0 / (steps + 1);
 
 for (var i = 1; i <= steps; i++) {
@@ -134,9 +161,14 @@ for (var i = 1; i <= steps; i++) {
   s = start.style();
   t = target.style();
 
-  c.contextSettings().setOpacity(interpolator(s.contextSettings().opacity(),
-      t.contextSettings().opacity()));
+  if (s.borders().count() != t.borders().count()) {
+    doc.showMessage("Paths must have same number of border styles");
+    exit();
+  }
 
+  interpolateContextSettings(c.contextSettings(), s.contextSettings(),
+      t.contextSettings(), interpolator);
+  interpolateBorders(c.borders(), s.borders(), t.borders(), interpolator);
 
   // Modify single points of the path according to the interpolator
   interpolatePaths(clone.layers().objectAtIndex(0),

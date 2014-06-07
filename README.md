@@ -6,10 +6,10 @@ known from tools like Adobe Illustrator for the otherwise brilliant [Sketch
 app](http://bohemiancoding.com/sketch).
 
 The plugin will eventually be able to generate a stepwise interpolation between
-two selected paths. Below is a proof-of-concept animation using a very early
-version of the script:
+two selected paths. Below is a demo animation showing the current capabilities
+of the script:
 
-![Proof of Concept](proof_of_concept.gif)
+![Demo](demo.gif)
 
 The interpolation seen in the animation is by no means perfect yet.
 
@@ -27,10 +27,11 @@ The following attributes are regarded when doing the interpolation:
 - Position of points
 - Position of curve anchors
 - Path opacity
+- Path size (thickness)
 
 Todo:
 
-- All other path-level properties (Size, Color, ...)
+- All other path-level properties (Color, ...)
 
 Can't really be done:
 
