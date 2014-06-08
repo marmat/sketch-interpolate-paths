@@ -115,8 +115,14 @@ log("%%%%%%%%%%%%%% START %%%%%%%%%%%%%%");
 // Note: we'll use exit() to abort the script even though this method does not
 // exist. This triggers an error message in the log, but that's okay.
 
+
+var app = [NSApplication sharedApplication];
+function showMessage(message) {
+  [app displayDialog:message withTitle:"Interpolate Paths Plugin"];
+}
+
 if (selection.count() != 2) {
-  doc.showMessage("Invalid number of objects selected");
+  showMessage("Invalid number of objects selected");
   exit();
 }
 
@@ -125,7 +131,7 @@ var target = selection[1];
 
 if (start.layers().objectAtIndex(0).path().points().count() !=
     target.layers().objectAtIndex(0).path().points().count()) {
-  doc.showMessage("Paths must have same number of points");
+  showMessage("Paths must have same number of points");
 }
 
 var steps = parseInt([doc askForUserInput:"Number of steps" initialValue:10], 10);
@@ -162,7 +168,7 @@ for (var i = 1; i <= steps; i++) {
   t = target.style();
 
   if (s.borders().count() != t.borders().count()) {
-    doc.showMessage("Paths must have same number of border styles");
+    showMessage("Paths must have same number of border styles");
     exit();
   }
 
