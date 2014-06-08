@@ -110,28 +110,40 @@ function dump(obj){
   log(obj.treeAsDictionary())
 }
 
-
-log("%%%%%%%%%%%%%% START %%%%%%%%%%%%%%");
-// Note: we'll use exit() to abort the script even though this method does not
-// exist. This triggers an error message in the log, but that's okay.
-
-
 var app = [NSApplication sharedApplication];
-function showMessage(message) {
+function indicateError(message) {
+  // Note: we'll use exit() to abort the script even though this method does not
+  // exist. This triggers an error message in the log, but that's okay.
   [app displayDialog:message withTitle:"Interpolate Paths Plugin"];
+  exit();
 }
 
+
+log("%%%%%%%%%%%%%% START %%%%%%%%%%%%%%");
+
 if (selection.count() != 2) {
-  showMessage("Invalid number of objects selected");
-  exit();
+  indicateError("Invalid number of objects selected");
 }
 
 var start = selection[0];
 var target = selection[1];
+dump(start);
+dump(target);
+
+if (!(
+  [start isMemberOfClass:[MSShapeGroup class]] &&
+  [target isMemberOfClass:[MSShapeGroup class]] &&
+  [[start layers] count] == 1 &&
+  [[target layers] count] == 1 &&
+  [[[start layers] objectAtIndex:0] isMemberOfClass:[MSShapePathLayer class]] &&
+  [[[target layers] objectAtIndex:0] isMemberOfClass:[MSShapePathLayer class]]
+)) {
+  indicateError("The selected objects must be simple paths");
+}
 
 if (start.layers().objectAtIndex(0).path().points().count() !=
     target.layers().objectAtIndex(0).path().points().count()) {
-  showMessage("Paths must have same number of points");
+  indicateError("Paths must have same number of points");
 }
 
 var steps = parseInt([doc askForUserInput:"Number of steps" initialValue:10], 10);
@@ -168,8 +180,7 @@ for (var i = 1; i <= steps; i++) {
   t = target.style();
 
   if (s.borders().count() != t.borders().count()) {
-    showMessage("Paths must have same number of border styles");
-    exit();
+    indicateError("Paths must have same number of border styles");
   }
 
   interpolateContextSettings(c.contextSettings(), s.contextSettings(),
