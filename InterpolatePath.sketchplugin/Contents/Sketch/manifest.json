@@ -1,0 +1,24 @@
+{
+  "author" : "",
+  "commands" : [
+    {
+      "script" : "script.cocoascript",
+      "name" : "InterpolatePath",
+      "handlers" : {
+        "run" : "onRun"
+      },
+      "identifier" : "com.bohemiancoding.sketch.runscriptidentifier"
+    }
+  ],
+  "menu" : {
+    "title" : "InterpolatePath",
+    "items" : [
+      "com.bohemiancoding.sketch.runscriptidentifier"
+    ]
+  },
+  "identifier" : "com.example.sketch.e3560941-555f-4f93-be62-0d725ff5bb3d",
+  "version" : "1.0",
+  "description" : "",
+  "authorEmail" : "",
+  "name" : "InterpolatePath"
+}

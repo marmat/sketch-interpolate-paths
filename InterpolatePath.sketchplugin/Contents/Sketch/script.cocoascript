@@ -1,4 +1,5 @@
-
+          var onRun = function(context) {
+          
 /**
  * Interpolate Path
  * Given two selected paths and a number of steps to perform, this plugin will
@@ -121,12 +122,12 @@ function indicateError(message) {
 
 log("%%%%%%%%%%%%%% START %%%%%%%%%%%%%%");
 
-if (selection.count() != 2) {
+if (context.selection.count() != 2) {
   indicateError("Invalid number of objects selected");
 }
 
-var start = selection[0];
-var target = selection[1];
+var start = context.selection[0];
+var target = context.selection[1];
 dump(start);
 dump(target);
 
@@ -146,6 +147,7 @@ if (start.layers().objectAtIndex(0).path().points().count() !=
   indicateError("Paths must have same number of points");
 }
 
+var doc = context.document;
 var steps = parseInt([doc askForUserInput:"Number of steps" initialValue:10], 10);
 //var steps = 10; // DEBUG //
 var stepSize = 1.0 / (steps + 1);
@@ -196,3 +198,6 @@ for (var i = 1; i <= steps; i++) {
 
 
 
+
+          };
+          
